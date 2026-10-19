@@ -30,22 +30,6 @@ struct IslandRootView: View {
                 .frame(width: size.width, height: size.height)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
 
-            if let palette = music.palette, state.expanded, state.page == .music {
-                shape
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(nsColor: palette.top), Color(nsColor: palette.bottom)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: size.width, height: size.height)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .id(palette.id)
-                    .transition(.opacity)
-                    .allowsHitTesting(false)
-            }
-
             ZStack(alignment: .top) {
                 ExpandedIslandView(
                     state: state,
@@ -76,8 +60,6 @@ struct IslandRootView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .animation(.spring(response: 0.42, dampingFraction: 0.92), value: state.expanded)
         .animation(.easeInOut(duration: 0.2), value: state.showSettings)
-        .animation(.easeInOut(duration: 0.5), value: music.palette?.id)
-        .animation(.easeInOut(duration: 0.35), value: state.page)
         .onDrop(of: [UTType.fileURL], isTargeted: dropTarget) { providers in
             state.fileDragActive = false
             store.add(providers: providers)

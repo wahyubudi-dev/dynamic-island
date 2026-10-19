@@ -20,10 +20,6 @@ struct ExpandedIslandView: View {
             prayer: prayer,
             intendedInitialPage: state.page
         )
-        .padding(.leading, 14)
-        .padding(.trailing, 14)
-        .padding(.top, 12 + state.notchInset)
-        .padding(.bottom, 12)
         .overlay(alignment: .topTrailing) {
             GlassIconButton(
                 systemName: "gearshape.fill",
@@ -59,7 +55,7 @@ private struct FeaturePager: View {
                 ScrollView(.horizontal) {
                 HStack(spacing: 0) {
                     ForEach(IslandFeature.allCases) { feature in
-                        page(for: feature)
+                        pageContainer(feature, size: geometry.size)
                             .frame(width: geometry.size.width, height: geometry.size.height)
                             .id(feature)
                     }
@@ -88,6 +84,30 @@ private struct FeaturePager: View {
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func pageContainer(_ feature: IslandFeature, size: CGSize) -> some View {
+        ZStack(alignment: .top) {
+            if feature == .music, let palette = music.palette {
+                LinearGradient(
+                    colors: [Color(nsColor: palette.top), Color(nsColor: palette.bottom)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .frame(width: size.width, height: size.height)
+                .id(palette.id)
+                .transition(.opacity)
+            }
+
+            page(for: feature)
+                .padding(.leading, 14)
+                .padding(.trailing, 14)
+                .padding(.top, 12 + state.notchInset)
+                .padding(.bottom, 12)
+        }
+        .frame(width: size.width, height: size.height)
+        .animation(.easeInOut(duration: 0.5), value: music.palette?.id)
     }
 
     @ViewBuilder
