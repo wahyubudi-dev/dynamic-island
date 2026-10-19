@@ -3,13 +3,14 @@
 Dynamic Island melayang di bawah notch: pill kecil saat idle, membesar saat di-hover, dan
 bisa digeser horizontal untuk berpindah fitur.
 
-Tiga fitur saat ini:
+Empat fitur saat ini:
 
 | Fitur | Isi |
 | --- | --- |
 | **Now Playing** | Artwork, judul, artis, album, progress, tombol previous / play-pause / next. Tombol skip otomatis di-dim kalau pemutar tidak mengiklankan Next/Previous (mis. Spotify Web Player di Arc) |
 | **Stopwatch** | Stopwatch, Timer (preset 1–30 menit), Pomodoro 25/5 dengan auto-lanjut fase dan bunyi saat selesai |
-| **Drop Zone** | Tahan file & folder di sini, lihat ukurannya, drag keluar lagi, buka di Finder, copy path, hapus |
+| **Drop Zone** | Tahan file & folder di sini, lihat ukurannya, drag keluar lagi, buka di Finder, hapus |
+| **Prayer Times** | Fajr, Dhuhr, Asr, Maghrib, Isha untuk lokasi device dan hari ini, highlight sholat berikutnya + hitung mundur real-time |
 
 ## Kebutuhan
 
@@ -61,6 +62,10 @@ klik kanan app → **Open**, atau jalankan lewat `make run`.
 - Tidak ada auto-launch saat login. Tambahkan manual: System Settings → General →
   Login Items → **+** → pilih `Dynamic Island.app`.
 - Layar tanpa notch tetap dapat pill kecil (200×30) di tengah atas.
+- **Prayer Times** butuh izin Location (sekali). Lokasi diambil saat launch, di-cache, dan
+  diperbarui tiap 30 menit. Perhitungan dilakukan offline (tanpa API): metode **Kemenag**
+  (Fajr 20°, Isha 18°) untuk timezone Indonesia, **MWL** (18°/17°) untuk lainnya. Selisih
+  terhadap referensi ±1 menit; Asr memakai madzhab Syafi'i.
 - Tombol next/previous hanya berfungsi kalau aplikasi pemutar mengiklankan command
   Next/Previous ke sistem. Spotify desktop dan Music mendukung; Spotify Web Player di Arc
   hanya mengiklankan Play/Pause/Stop/Seek, jadi tombolnya di-dim (bukan bug tombolnya).
@@ -79,11 +84,15 @@ Sources/
   ExpandedIslandView.swift pager horizontal, gear, page dots
   SettingsOverlay.swift   panel setting di dalam island
   MusicPlayer.swift       MediaRemote (dlopen) + polling 0.75 s + transport command
+  PrayerTimes.swift       kalkulasi waktu sholat offline (Kemenag / MWL)
+  LocationService.swift   CoreLocation, izin, reverse geocode, cache lokasi
+  PrayerModel.swift       jadwal hari ini + besok, refresh harian/lokasi
+  PrayerPage.swift        kartu 5 waktu sholat + countdown berikutnya
   Stopwatch.swift         model stopwatch berbasis Date
   ClockTools.swift        mode clock, CountdownTimer (preset), Pomodoro 25/5
   DropStore.swift         daftar item, ekstraksi URL dari NSItemProvider
   DragHandle.swift        overlay baris: seleksi + NSDraggingSession untuk file terpilih
-  MusicPage.swift / ClockPage.swift / DropPage.swift
+  MusicPage.swift / ClockPage.swift / DropPage.swift / PrayerPage.swift
   UIComponents.swift      tombol, format waktu
 ```
 
