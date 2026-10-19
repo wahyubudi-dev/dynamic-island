@@ -21,9 +21,22 @@ Empat fitur saat ini:
 
 ```bash
 make run        # build + launch
+make dmg        # build + package installer DMG
 make install    # copy ke /Applications lalu launch
 make clean
 ```
+
+## Install via DMG
+
+```bash
+make dmg
+open "build/Dynamic Island.dmg"
+```
+
+Drag **Dynamic Island.app** ke folder **Applications**, lalu buka. DMG berisi app + shortcut
+Applications, dibuat dengan `hdiutil`. Karena app di-ad-hoc sign dan belum dinotarize, saat
+pertama dibuka mungkin perlu klik kanan → **Open**. Untuk distribusi publik diperlukan
+Developer ID + notarization dari Apple.
 
 Atau manual:
 
