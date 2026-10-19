@@ -73,6 +73,9 @@ final class MusicPlayer: ObservableObject {
     private var anchor = Playhead(elapsed: 0, date: Date(), isPlaying: false)
     private var lastReportedElapsed: TimeInterval = -1
     private var lastReportedTimestamp: Date?
+    private var lastInfoDate = Date()
+    private var optimisticPlaying: Bool?
+    private var optimisticUntil: Date?
 
     init() {
         let path = "/System/Library/PrivateFrameworks/MediaRemote.framework/MediaRemote"
@@ -129,7 +132,16 @@ final class MusicPlayer: ObservableObject {
 
     // MARK: - Transport
 
-    func togglePlayPause() { send(Command.togglePlayPause) }
+    func togglePlayPause() {
+        // Flip the button immediately; polls can lag behind for a moment.
+        let next = !isPlaying
+        let current = position()
+        isPlaying = next
+        optimisticPlaying = next
+        optimisticUntil = Date().addingTimeInterval(1.0)
+        anchor = Playhead(elapsed: current, date: Date(), isPlaying: next)
+        send(Command.togglePlayPause)
+    }
     func nextTrack() { send(Command.nextTrack) }
     func previousTrack() { send(Command.previousTrack) }
 
@@ -221,7 +233,39 @@ final class MusicPlayer: ObservableObject {
             }
         }
 
-        let playingNow = playing || rate > 0
+        let now = Date()
+        let resolved = resolvedPlaybackState(
+            reported: playing || rate > 0,
+            optimistic: optimisticPlaying,
+            optimisticUntil: optimisticUntil,
+            now: now
+        )
+        optimisticPlaying = resolved.pendingOptimistic
+        let effectivePlaying = resolved.playing
+
+        let isEmptyInfo = newTitle.isEmpty && newDuration == 0
+        if isEmptyInfo {
+            // Players briefly drop the info dict while pause/play is settling.
+            if hasSession && now.timeIntervalSince(lastInfoDate) < 1.5 {
+                isPlaying = effectivePlaying
+                anchor.isPlaying = effectivePlaying
+                return
+            }
+            title = ""
+            artist = ""
+            album = ""
+            duration = 0
+            artwork = nil
+            lastArtworkData = nil
+            hasSession = false
+            isPlaying = false
+            optimisticPlaying = nil
+            anchor = Playhead(elapsed: 0, date: now, isPlaying: false)
+            return
+        }
+
+        lastInfoDate = now
+
         let trackChanged = newTitle != title || abs(newDuration - duration) > 0.5
         let reportedTimestamp = info[Key.timestamp] as? Date
 
@@ -230,23 +274,29 @@ final class MusicPlayer: ObservableObject {
         if newAlbum != album { album = newAlbum }
         if newDuration != duration { duration = newDuration }
 
-        isPlaying = playingNow
-        hasSession = !newTitle.isEmpty || playingNow || newDuration > 0
+        isPlaying = effectivePlaying
+        hasSession = true
         updateAnchor(
             elapsed: newElapsed,
             timestamp: reportedTimestamp,
-            playing: playingNow,
+            playing: effectivePlaying,
             trackChanged: trackChanged
         )
 
-        if let data = info[Key.artworkData] as? Data {
-            if data != lastArtworkData {
-                lastArtworkData = data
-                artwork = NSImage(data: data)
-            }
-        } else if lastArtworkData != nil {
+        switch artworkDecision(
+            current: lastArtworkData,
+            incoming: info[Key.artworkData] as? Data,
+            trackChanged: trackChanged
+        ) {
+        case .keep:
+            break
+        case .clear:
+            // A new track without artwork: drop the previous cover.
             lastArtworkData = nil
             artwork = nil
+        case .update(let data):
+            lastArtworkData = data
+            artwork = NSImage(data: data)
         }
     }
 
@@ -268,4 +318,35 @@ final class MusicPlayer: ObservableObject {
             anchor.isPlaying = playing
         }
     }
+}
+
+/// Reconciles the optimistic button state with MediaRemote's reported state.
+func resolvedPlaybackState(
+    reported: Bool,
+    optimistic: Bool?,
+    optimisticUntil: Date?,
+    now: Date
+) -> (playing: Bool, pendingOptimistic: Bool?) {
+    guard let optimistic, let until = optimisticUntil, now < until else {
+        return (reported, nil)
+    }
+    if reported == optimistic {
+        return (reported, nil)
+    }
+    return (optimistic, optimistic)
+}
+
+enum ArtworkDecision: Equatable {
+    case keep
+    case clear
+    case update(Data)
+}
+
+/// Keeps the current cover when the artwork key briefly disappears during a
+/// pause/play transition; only a track change may drop it.
+func artworkDecision(current: Data?, incoming: Data?, trackChanged: Bool) -> ArtworkDecision {
+    if let incoming {
+        return incoming == current ? .keep : .update(incoming)
+    }
+    return trackChanged ? .clear : .keep
 }
