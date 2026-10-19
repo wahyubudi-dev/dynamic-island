@@ -7,7 +7,7 @@ Empat fitur saat ini:
 
 | Fitur | Isi |
 | --- | --- |
-| **Now Playing** | Artwork, judul, artis, album, progress, tombol previous / play-pause / next. Tombol skip otomatis di-dim kalau pemutar tidak mengiklankan Next/Previous (mis. Spotify Web Player di Arc) |
+| **Now Playing** | Artwork, judul, artis, album, progress, tombol previous / play-pause / next; background island menyesuaikan warna dominan artwork. Tombol skip otomatis di-dim kalau pemutar tidak mengiklankan Next/Previous (mis. Spotify Web Player di Arc) |
 | **Monitor** | CPU, GPU, RAM, network (↓/↑) dan disk usage tiap detik, dengan detail used/total RAM & disk serta jumlah core CPU/GPU |
 | **Stopwatch** | Stopwatch, Timer (preset 1–30 menit), Pomodoro 25/5 dengan auto-lanjut fase dan bunyi saat selesai |
 | **Prayer Times** | Tanggal hari ini, Fajr, Dhuhr, Asr, Maghrib, Isha untuk lokasi device, highlight sholat berikutnya |
@@ -98,6 +98,7 @@ Sources/
   ExpandedIslandView.swift pager horizontal, gear, page dots
   SettingsOverlay.swift   panel setting di dalam island
   MusicPlayer.swift       MediaRemote (dlopen) + polling 0.75 s + transport command
+  ArtworkPalette.swift    ekstraksi warna dominan artwork + gradient gelap
   PrayerTimes.swift       kalkulasi waktu sholat offline (Kemenag / MWL)
   LocationService.swift   CoreLocation, izin, reverse geocode, cache lokasi
   PrayerModel.swift       jadwal hari ini + besok, refresh harian/lokasi
@@ -122,6 +123,10 @@ Catatan teknis:
   bawah notch, tidak terpotong. Di layar tanpa notch inset = 0.
 - Now Playing di-poll, bukan memakai notifikasi, agar simbol notifikasi MediaRemote yang
   berubah antar versi tidak mematikan fitur.
+- Background Now Playing ditint dari warna dominan artwork: cover di-downsample 24×24,
+  pixel vivid (bukan hitam/putih/abu) dirata-ratakan, lalu hue-nya dipakai sebagai gradient
+  gelap (brightness 0.20 → 0.045) supaya teks putih tetap terbaca. Tint hanya tampil saat
+  expanded di halaman music dan crossfade saat track/halaman berganti.
 - Shelf terbuka otomatis saat drag file mendekat: global monitor `leftMouseDragged` membaca
   `NSPasteboard(name: .drag)` lalu `NSEvent.mouseLocation`, karena target drop SwiftUI baru
   aktif setelah kursor masuk window. Pager memakai `ScrollViewReader` untuk menerapkan
