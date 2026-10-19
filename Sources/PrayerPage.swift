@@ -90,10 +90,9 @@ struct PrayerPageContent: View {
     // MARK: - Schedule
 
     private var schedule: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 13) {
             header
             timeline
-            footer
         }
         .padding(.horizontal, 2)
         .frame(maxHeight: .infinity, alignment: .center)
@@ -113,14 +112,20 @@ struct PrayerPageContent: View {
 
             Spacer(minLength: 4)
 
-            HStack(spacing: 4) {
-                Image(systemName: "location.fill")
-                    .font(.system(size: 8))
-                    .foregroundStyle(.white.opacity(0.3))
-                Text(placeLabel)
-                    .font(.system(size: 9.5, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.44))
-                    .lineLimit(1)
+            VStack(alignment: .trailing, spacing: 1) {
+                HStack(spacing: 4) {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 8))
+                        .foregroundStyle(.white.opacity(0.3))
+                    Text(placeLabel)
+                        .font(.system(size: 9.5, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.44))
+                        .lineLimit(1)
+                }
+                Text(methodName)
+                    .font(.system(size: 8.5, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.24))
+                    .tracking(0.4)
             }
         }
     }
@@ -145,14 +150,9 @@ struct PrayerPageContent: View {
         let isNext = next?.id == time.id
         return VStack(spacing: 3) {
             ZStack {
-                if isNext {
-                    Circle()
-                        .stroke(prayerAccent.opacity(0.32), lineWidth: 3)
-                        .frame(width: 13, height: 13)
-                }
                 Circle()
                     .fill(isNext ? prayerAccent : Color.white.opacity(0.22))
-                    .frame(width: isNext ? 7 : 5, height: isNext ? 7 : 5)
+                    .frame(width: isNext ? 8 : 5, height: isNext ? 8 : 5)
             }
             .frame(height: 13)
 
@@ -170,38 +170,6 @@ struct PrayerPageContent: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var footer: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "moon.stars.fill")
-                .font(.system(size: 9))
-                .foregroundStyle(prayerAccent)
-            Text(nextLabel)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.white.opacity(0.78))
-                .monospacedDigit()
-            Spacer(minLength: 4)
-            Text(methodName)
-                .font(.system(size: 8.5, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.26))
-        }
-    }
-
-    private var nextLabel: String {
-        guard let next else { return "No prayer times yet" }
-        let tomorrow = !Calendar.current.isDate(next.date, inSameDayAs: now)
-        let prefix = tomorrow ? "\(next.prayer.name) tomorrow" : next.prayer.name
-        return "\(prefix) in \(countdown(to: next.date))"
-    }
-
-    private func countdown(to date: Date) -> String {
-        let remaining = max(0, date.timeIntervalSince(now))
-        let minutes = Int(remaining / 60)
-        let hours = minutes / 60
-        let rest = minutes % 60
-        if hours > 0 { return "\(hours)h \(rest)m" }
-        if minutes > 0 { return "\(minutes)m" }
-        return "a moment"
-    }
 
     private func timeText(_ date: Date) -> String {
         prayerTimeFormatter.timeZone = .current
