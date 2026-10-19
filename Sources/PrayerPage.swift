@@ -10,6 +10,13 @@ private let prayerTimeFormatter: DateFormatter = {
     return formatter
 }()
 
+private let prayerDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.locale = .current
+    formatter.dateFormat = "EEE, d MMM yyyy"
+    return formatter
+}()
+
 struct PrayerPage: View {
     @ObservedObject var model: PrayerModel
 
@@ -83,68 +90,100 @@ struct PrayerPageContent: View {
     // MARK: - Schedule
 
     private var schedule: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 9) {
+            header
+            timeline
+            footer
+        }
+        .padding(.horizontal, 2)
+        .frame(maxHeight: .infinity, alignment: .center)
+    }
+
+    private var header: some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text("PRAYER TIMES")
                     .font(.system(size: 9, weight: .bold))
-                    .tracking(1.2)
-                    .foregroundStyle(.white.opacity(0.38))
-                Spacer(minLength: 4)
+                    .tracking(1.3)
+                    .foregroundStyle(.white.opacity(0.36))
+                Text(dateText(now))
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.88))
+            }
+
+            Spacer(minLength: 4)
+
+            HStack(spacing: 4) {
                 Image(systemName: "location.fill")
                     .font(.system(size: 8))
                     .foregroundStyle(.white.opacity(0.3))
                 Text(placeLabel)
                     .font(.system(size: 9.5, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.42))
+                    .foregroundStyle(.white.opacity(0.44))
                     .lineLimit(1)
             }
-
-            HStack(spacing: 6) {
-                ForEach(displayTimes) { time in
-                    prayerCard(time)
-                }
-            }
-
-            HStack(spacing: 6) {
-                Image(systemName: "moon.stars.fill")
-                    .font(.system(size: 9))
-                    .foregroundStyle(prayerAccent)
-                Text(nextLabel)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.white.opacity(0.78))
-                    .monospacedDigit()
-                Spacer(minLength: 4)
-                Text(methodName)
-                    .font(.system(size: 8.5, weight: .semibold))
-                    .foregroundStyle(.white.opacity(0.28))
-            }
         }
-        .padding(.horizontal, 2)
     }
 
-    private func prayerCard(_ time: PrayerTime) -> some View {
+    private var timeline: some View {
+        ZStack(alignment: .top) {
+            Capsule()
+                .fill(.white.opacity(0.07))
+                .frame(height: 1)
+                .padding(.horizontal, 54)
+                .padding(.top, 4)
+
+            HStack(spacing: 0) {
+                ForEach(displayTimes) { time in
+                    prayerColumn(time)
+                }
+            }
+        }
+    }
+
+    private func prayerColumn(_ time: PrayerTime) -> some View {
         let isNext = next?.id == time.id
-        return VStack(spacing: 2) {
+        return VStack(spacing: 3) {
+            ZStack {
+                if isNext {
+                    Circle()
+                        .stroke(prayerAccent.opacity(0.32), lineWidth: 3)
+                        .frame(width: 13, height: 13)
+                }
+                Circle()
+                    .fill(isNext ? prayerAccent : Color.white.opacity(0.22))
+                    .frame(width: isNext ? 7 : 5, height: isNext ? 7 : 5)
+            }
+            .frame(height: 13)
+
             Text(time.prayer.name.uppercased())
                 .font(.system(size: 8.5, weight: .semibold))
-                .tracking(0.7)
-                .foregroundStyle(isNext ? prayerAccent : .white.opacity(0.42))
+                .tracking(0.6)
+                .foregroundStyle(isNext ? prayerAccent : .white.opacity(0.4))
                 .lineLimit(1)
+
             Text(timeText(time.date))
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.white.opacity(isNext ? 1 : 0.82))
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 48)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isNext ? prayerAccent.opacity(0.16) : Color.white.opacity(0.035))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(isNext ? prayerAccent.opacity(0.55) : Color.white.opacity(0.05), lineWidth: 1)
-        )
+    }
+
+    private var footer: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "moon.stars.fill")
+                .font(.system(size: 9))
+                .foregroundStyle(prayerAccent)
+            Text(nextLabel)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.white.opacity(0.78))
+                .monospacedDigit()
+            Spacer(minLength: 4)
+            Text(methodName)
+                .font(.system(size: 8.5, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.26))
+        }
     }
 
     private var nextLabel: String {
@@ -167,6 +206,11 @@ struct PrayerPageContent: View {
     private func timeText(_ date: Date) -> String {
         prayerTimeFormatter.timeZone = .current
         return prayerTimeFormatter.string(from: date)
+    }
+
+    private func dateText(_ date: Date) -> String {
+        prayerDateFormatter.timeZone = .current
+        return prayerDateFormatter.string(from: date)
     }
 
     // MARK: - Location message
