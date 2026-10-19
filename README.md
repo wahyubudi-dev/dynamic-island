@@ -7,7 +7,7 @@ Empat fitur saat ini:
 
 | Fitur | Isi |
 | --- | --- |
-| **Now Playing** | Artwork, judul, artis, album, progress, tombol previous / play-pause / next; background island menyesuaikan warna dominan artwork. Tombol skip otomatis di-dim kalau pemutar tidak mengiklankan Next/Previous (mis. Spotify Web Player di Arc) |
+| **Now Playing** | Artwork, judul, artis, album, progress, tombol previous / play-pause / next; background halaman Now Playing menyesuaikan warna dominan artwork (halaman lain tetap gelap). Tombol skip otomatis di-dim kalau pemutar tidak mengiklankan Next/Previous (mis. Spotify Web Player di Arc) |
 | **Monitor** | CPU, GPU, RAM, network (↓/↑) dan disk usage tiap detik, dengan detail used/total RAM & disk serta jumlah core CPU/GPU |
 | **Stopwatch** | Stopwatch, Timer (preset 1–30 menit), Pomodoro 25/5 dengan auto-lanjut fase dan bunyi saat selesai |
 | **Prayer Times** | Tanggal hari ini, Fajr, Dhuhr, Asr, Maghrib, Isha untuk lokasi device, highlight sholat berikutnya |
@@ -125,8 +125,9 @@ Catatan teknis:
   berubah antar versi tidak mematikan fitur.
 - Background Now Playing ditint dari warna dominan artwork: cover di-downsample 24×24,
   pixel vivid (bukan hitam/putih/abu) dirata-ratakan, lalu hue-nya dipakai sebagai gradient
-  gelap (brightness 0.20 → 0.045) supaya teks putih tetap terbaca. Tint hanya tampil saat
-  expanded di halaman music dan crossfade saat track/halaman berganti.
+  gelap (brightness 0.20 → 0.045) supaya teks putih tetap terbaca. Tint adalah background
+  milik halaman music (ikut bergeser saat swipe), jadi halaman lain tetap gelap; crossfade
+  saat track berganti.
 - Shelf terbuka otomatis saat drag file mendekat: global monitor `leftMouseDragged` membaca
   `NSPasteboard(name: .drag)` lalu `NSEvent.mouseLocation`, karena target drop SwiftUI baru
   aktif setelah kursor masuk window. Pager memakai `ScrollViewReader` untuk menerapkan
