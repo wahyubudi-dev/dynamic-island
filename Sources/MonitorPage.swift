@@ -33,11 +33,35 @@ struct MonitorPageContent: View {
             Spacer(minLength: 4)
 
             HStack(alignment: .center, spacing: 0) {
-                metric("CPU", percent(snapshot.cpuPercent))
-                metric("GPU", snapshot.gpuPercent.map(percent) ?? "—")
-                metric("RAM", percent(snapshot.ramPercent))
+                metric(
+                    "CPU",
+                    percent(snapshot.cpuPercent),
+                    detail: "\(snapshot.cpuCores) cores"
+                )
+                metric(
+                    "GPU",
+                    snapshot.gpuPercent.map(percent) ?? "—",
+                    detail: snapshot.gpuCores.map { "\($0) cores" } ?? "—"
+                )
+                metric(
+                    "RAM",
+                    percent(snapshot.ramPercent),
+                    detail: formatUsedOfTotal(
+                        used: snapshot.ramUsedBytes,
+                        total: snapshot.ramTotalBytes,
+                        usedDecimals: 1
+                    )
+                )
                 network
-                metric("DSK", percent(snapshot.diskPercent))
+                metric(
+                    "DSK",
+                    percent(snapshot.diskPercent),
+                    detail: formatUsedOfTotal(
+                        used: snapshot.diskUsedBytes,
+                        total: snapshot.diskTotalBytes,
+                        usedDecimals: 0
+                    )
+                )
             }
 
             Spacer(minLength: 0)
@@ -50,8 +74,8 @@ struct MonitorPageContent: View {
         "\(Int(value.rounded()))%"
     }
 
-    private func metric(_ label: String, _ value: String) -> some View {
-        VStack(spacing: 3) {
+    private func metric(_ label: String, _ value: String, detail: String) -> some View {
+        VStack(spacing: 2) {
             Text(label)
                 .font(.system(size: 9, weight: .bold))
                 .tracking(1.2)
@@ -60,6 +84,12 @@ struct MonitorPageContent: View {
                 .font(.system(size: 25, weight: .bold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(detail)
+                .font(.system(size: 8.5, weight: .semibold))
+                .monospacedDigit()
+                .foregroundStyle(.white.opacity(0.32))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }

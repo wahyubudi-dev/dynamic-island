@@ -4,11 +4,17 @@ import IOKit
 
 struct MonitorSnapshot: Equatable {
     var cpuPercent: Double = 0
+    var cpuCores = ProcessInfo.processInfo.processorCount
     var gpuPercent: Double?
+    var gpuCores: Int?
     var ramPercent: Double = 0
+    var ramUsedBytes: UInt64 = 0
+    var ramTotalBytes: UInt64 = ProcessInfo.processInfo.physicalMemory
     var downloadBytesPerSecond: Double = 0
     var uploadBytesPerSecond: Double = 0
     var diskPercent: Double = 0
+    var diskUsedBytes: UInt64 = 0
+    var diskTotalBytes: UInt64 = 0
 }
 
 /// Samples CPU, GPU, RAM, network throughput and disk usage once per second.
@@ -22,9 +28,9 @@ final class SystemMonitor: ObservableObject {
     private var previousCPUBusy: UInt64 = 0
     private var previousCPUTotal: UInt64 = 0
 
-    private var previousNetUp: UInt64 = 0
-    private var previousNetDown: UInt64 = 0
+    private var previousNetInterfaces: [String: (down: UInt32, up: UInt32)] = [:]
     private var previousNetDate: Date?
+    private var gpuCoreCount: Int?
 
     func start() {
         guard !running else { return }
@@ -49,14 +55,16 @@ final class SystemMonitor: ObservableObject {
 
     private func sample() {
         var next = snapshot
+        next.cpuCores = ProcessInfo.processInfo.processorCount
         if let cpu = cpuUsage() { next.cpuPercent = cpu }
         next.gpuPercent = gpuUsage()
-        next.ramPercent = ramUsage()
+        next.gpuCores = gpuCoreCount
+        next.ramPercent = ramUsage(&next)
         if let rates = networkRates() {
             next.downloadBytesPerSecond = rates.down
             next.uploadBytesPerSecond = rates.up
         }
-        next.diskPercent = diskUsage()
+        next.diskPercent = diskUsage(&next)
         snapshot = next
     }
 
@@ -124,6 +132,15 @@ final class SystemMonitor: ObservableObject {
         var best: Double?
         var service = IOIteratorNext(iterator)
         while service != 0 {
+            if gpuCoreCount == nil,
+               let cores = IORegistryEntryCreateCFProperty(
+                   service,
+                   "gpu-core-count" as CFString,
+                   kCFAllocatorDefault,
+                   0
+               )?.takeRetainedValue() as? NSNumber {
+                gpuCoreCount = cores.intValue
+            }
             if let property = IORegistryEntryCreateCFProperty(
                 service,
                 "PerformanceStatistics" as CFString,
@@ -144,7 +161,7 @@ final class SystemMonitor: ObservableObject {
 
     // MARK: - RAM
 
-    private func ramUsage() -> Double {
+    private func ramUsage(_ next: inout MonitorSnapshot) -> Double {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(
             MemoryLayout<vm_statistics64_data_t>.size / MemoryLayout<integer_t>.size
@@ -162,9 +179,12 @@ final class SystemMonitor: ObservableObject {
         let usedPages = UInt64(stats.active_count)
             + UInt64(stats.wire_count)
             + UInt64(stats.compressor_page_count)
+        let used = usedPages * pageSize
         let total = ProcessInfo.processInfo.physicalMemory
+        next.ramUsedBytes = used
+        next.ramTotalBytes = total
         guard total > 0 else { return 0 }
-        return min(100, max(0, Double(usedPages * pageSize) / Double(total) * 100))
+        return min(100, max(0, Double(used) / Double(total) * 100))
     }
 
     // MARK: - Network
@@ -176,40 +196,46 @@ final class SystemMonitor: ObservableObject {
 
         var down: UInt64 = 0
         var up: UInt64 = 0
+        var current: [String: (down: UInt32, up: UInt32)] = [:]
         var pointer: UnsafeMutablePointer<ifaddrs>? = first
-        while let current = pointer {
-            let entry = current.pointee
+        while let entryPointer = pointer {
+            let entry = entryPointer.pointee
             let name = String(cString: entry.ifa_name)
             let relevant = name.hasPrefix("en") || name.hasPrefix("pdp_ip") || name.hasPrefix("utun")
             if relevant,
                entry.ifa_addr?.pointee.sa_family == UInt8(AF_LINK),
                let data = entry.ifa_data {
-                let stats = data.assumingMemoryBound(to: if_data64.self).pointee
-                down += stats.ifi_ibytes
-                up += stats.ifi_obytes
+                // getifaddrs exposes the 32-bit if_data, not if_data64.
+                let stats = data.assumingMemoryBound(to: if_data.self).pointee
+                current[name] = (stats.ifi_ibytes, stats.ifi_obytes)
+                if let previous = previousNetInterfaces[name] {
+                    down += counterDelta(previous.down, stats.ifi_ibytes)
+                    up += counterDelta(previous.up, stats.ifi_obytes)
+                }
             }
             pointer = entry.ifa_next
         }
 
         let now = Date()
-        defer {
-            previousNetDown = down
-            previousNetUp = up
-            previousNetDate = now
-        }
+        let previousDate = previousNetDate
+        previousNetInterfaces = current
+        previousNetDate = now
 
-        guard let previousDate = previousNetDate else { return (0, 0) }
+        guard let previousDate else { return (0, 0) }
         let interval = now.timeIntervalSince(previousDate)
-        guard interval > 0, down >= previousNetDown, up >= previousNetUp else { return (0, 0) }
-        return (
-            Double(down - previousNetDown) / interval,
-            Double(up - previousNetUp) / interval
-        )
+        guard interval > 0 else { return (0, 0) }
+        return (Double(down) / interval, Double(up) / interval)
+    }
+
+    /// 32-bit interface counters wrap at 4 GB; treat a decrease as a reset
+    /// and resume measuring on the next sample.
+    private func counterDelta(_ previous: UInt32, _ current: UInt32) -> UInt64 {
+        current >= previous ? UInt64(current - previous) : 0
     }
 
     // MARK: - Disk
 
-    private func diskUsage() -> Double {
+    private func diskUsage(_ next: inout MonitorSnapshot) -> Double {
         let url = URL(fileURLWithPath: "/")
         guard let values = try? url.resourceValues(forKeys: [
             .volumeTotalCapacityKey,
@@ -220,8 +246,10 @@ final class SystemMonitor: ObservableObject {
         }
         let available = values.volumeAvailableCapacityForImportantUsage
             ?? Int64(values.volumeAvailableCapacity ?? 0)
-        let used = Double(total) - Double(available)
-        return min(100, max(0, used / Double(total) * 100))
+        let used = max(0, total - Int(available))
+        next.diskUsedBytes = UInt64(used)
+        next.diskTotalBytes = UInt64(total)
+        return min(100, max(0, Double(used) / Double(total) * 100))
     }
 }
 
@@ -240,4 +268,15 @@ func formatTransferRate(_ bytesPerSecond: Double) -> String {
         return mb >= 100 ? String(format: "%.0fMB", mb) : String(format: "%.1fMB", mb)
     }
     return String(format: "%.1fGB", mb / 1_000)
+}
+
+func formatGigabytes(_ bytes: UInt64, decimals: Int) -> String {
+    String(format: "%.\(decimals)f", Double(bytes) / 1_073_741_824)
+}
+
+func formatUsedOfTotal(used: UInt64, total: UInt64, usedDecimals: Int) -> String {
+    let totalGB = Double(total) / 1_073_741_824
+    let whole = abs(totalGB.rounded() - totalGB) < 0.05
+    let totalDecimals = whole || totalGB >= 100 ? 0 : 1
+    return "\(formatGigabytes(used, decimals: usedDecimals)) / \(formatGigabytes(total, decimals: totalDecimals)) GB"
 }
