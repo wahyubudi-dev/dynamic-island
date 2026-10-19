@@ -8,7 +8,7 @@ Empat fitur saat ini:
 | Fitur | Isi |
 | --- | --- |
 | **Now Playing** | Artwork, judul, artis, album, progress, tombol previous / play-pause / next. Tombol skip otomatis di-dim kalau pemutar tidak mengiklankan Next/Previous (mis. Spotify Web Player di Arc) |
-| **Monitor** | CPU, GPU, RAM, network (↓/↑) dan disk usage, sampling tiap detik |
+| **Monitor** | CPU, GPU, RAM, network (↓/↑) dan disk usage tiap detik, dengan detail used/total RAM & disk serta jumlah core CPU/GPU |
 | **Stopwatch** | Stopwatch, Timer (preset 1–30 menit), Pomodoro 25/5 dengan auto-lanjut fase dan bunyi saat selesai |
 | **Prayer Times** | Tanggal hari ini, Fajr, Dhuhr, Asr, Maghrib, Isha untuk lokasi device, highlight sholat berikutnya |
 | **Drop Zone** | Tahan file & folder di sini, lihat ukurannya, drag keluar lagi, buka di Finder, hapus |
