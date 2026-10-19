@@ -31,6 +31,7 @@ final class MusicPlayer: ObservableObject {
     @Published private(set) var artist = ""
     @Published private(set) var album = ""
     @Published private(set) var artwork: NSImage?
+    @Published private(set) var palette: ArtworkPalette?
     @Published private(set) var isPlaying = false
     @Published private(set) var duration: TimeInterval = 0
     @Published private(set) var canSkipNext = true
@@ -256,6 +257,7 @@ final class MusicPlayer: ObservableObject {
             album = ""
             duration = 0
             artwork = nil
+            palette = nil
             lastArtworkData = nil
             hasSession = false
             isPlaying = false
@@ -294,9 +296,12 @@ final class MusicPlayer: ObservableObject {
             // A new track without artwork: drop the previous cover.
             lastArtworkData = nil
             artwork = nil
+            palette = nil
         case .update(let data):
             lastArtworkData = data
-            artwork = NSImage(data: data)
+            let image = NSImage(data: data)
+            artwork = image
+            palette = image.flatMap(extractArtworkPalette)
         }
     }
 
