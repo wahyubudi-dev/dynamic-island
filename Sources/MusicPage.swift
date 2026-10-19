@@ -166,13 +166,13 @@ struct MusicPage: View {
                         .frame(width: max(0, geometry.size.width * fraction))
                 }
             }
-            .frame(height: 3)
+            .frame(height: 5)
 
             Text(formatPlaybackTime(music.duration))
                 .font(.system(size: 9, weight: .medium))
                 .monospacedDigit()
                 .foregroundStyle(.white.opacity(0.42))
         }
-        .frame(height: 12)
+        .frame(height: 14)
     }
 }
