@@ -11,7 +11,7 @@ struct SettingsOverlay: View {
                     Text("Dynamic Island")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.white)
-                    Text("Now playing · Clock · Shelf · Prayer")
+                    Text("Now playing · Clock · Prayer · Shelf")
                         .font(.system(size: 10))
                         .foregroundStyle(.white.opacity(0.4))
                 }
