@@ -127,7 +127,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func hoverTick() {
-        guard let panel else { return }
+        guard panel != nil else { return }
 
         if state.fileDragActive, NSEvent.pressedMouseButtons & 0x1 == 0 {
             state.fileDragActive = false

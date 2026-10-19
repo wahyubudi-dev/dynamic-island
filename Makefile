@@ -1,6 +1,7 @@
 APP = build/Dynamic Island.app
+DMG = build/Dynamic Island.dmg
 
-.PHONY: build run stop clean install
+.PHONY: build run dmg stop clean install
 
 build:
 	./build.sh
@@ -14,6 +15,9 @@ debug: build
 
 stop:
 	-pkill -x DynamicIsland
+
+dmg: build
+	./make-dmg.sh
 
 install: build
 	rm -rf "/Applications/Dynamic Island.app"
