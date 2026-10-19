@@ -90,6 +90,10 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
     <string>6.0</string>
     <key>LSMinimumSystemVersion</key>
     <string>$DEPLOYMENT_TARGET</string>
+    <key>NSLocationUsageDescription</key>
+    <string>Dynamic Island uses your location to calculate today's prayer times.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Dynamic Island uses your location to calculate today's prayer times.</string>
     <key>LSUIElement</key>
     <true/>
     <key>NSHighResolutionCapable</key>
