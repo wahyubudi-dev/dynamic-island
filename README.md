@@ -9,7 +9,7 @@ Empat fitur saat ini:
 | --- | --- |
 | **Now Playing** | Artwork, judul, artis, album, progress, tombol previous / play-pause / next. Tombol skip otomatis di-dim kalau pemutar tidak mengiklankan Next/Previous (mis. Spotify Web Player di Arc) |
 | **Stopwatch** | Stopwatch, Timer (preset 1–30 menit), Pomodoro 25/5 dengan auto-lanjut fase dan bunyi saat selesai |
-| **Prayer Times** | Tanggal hari ini, Fajr, Dhuhr, Asr, Maghrib, Isha untuk lokasi device, highlight sholat berikutnya + hitung mundur real-time |
+| **Prayer Times** | Tanggal hari ini, Fajr, Dhuhr, Asr, Maghrib, Isha untuk lokasi device, highlight sholat berikutnya |
 | **Drop Zone** | Tahan file & folder di sini, lihat ukurannya, drag keluar lagi, buka di Finder, hapus |
 
 ## Kebutuhan
@@ -87,7 +87,7 @@ Sources/
   PrayerTimes.swift       kalkulasi waktu sholat offline (Kemenag / MWL)
   LocationService.swift   CoreLocation, izin, reverse geocode, cache lokasi
   PrayerModel.swift       jadwal hari ini + besok, refresh harian/lokasi
-  PrayerPage.swift        kartu 5 waktu sholat + countdown berikutnya
+  PrayerPage.swift        timeline 5 waktu sholat + tanggal hari ini
   Stopwatch.swift         model stopwatch berbasis Date
   ClockTools.swift        mode clock, CountdownTimer (preset), Pomodoro 25/5
   DropStore.swift         daftar item, ekstraksi URL dari NSItemProvider
