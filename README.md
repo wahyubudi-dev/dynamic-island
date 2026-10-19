@@ -9,8 +9,8 @@ Empat fitur saat ini:
 | --- | --- |
 | **Now Playing** | Artwork, judul, artis, album, progress, tombol previous / play-pause / next. Tombol skip otomatis di-dim kalau pemutar tidak mengiklankan Next/Previous (mis. Spotify Web Player di Arc) |
 | **Stopwatch** | Stopwatch, Timer (preset 1–30 menit), Pomodoro 25/5 dengan auto-lanjut fase dan bunyi saat selesai |
+| **Prayer Times** | Tanggal hari ini, Fajr, Dhuhr, Asr, Maghrib, Isha untuk lokasi device, highlight sholat berikutnya + hitung mundur real-time |
 | **Drop Zone** | Tahan file & folder di sini, lihat ukurannya, drag keluar lagi, buka di Finder, hapus |
-| **Prayer Times** | Fajr, Dhuhr, Asr, Maghrib, Isha untuk lokasi device dan hari ini, highlight sholat berikutnya + hitung mundur real-time |
 
 ## Kebutuhan
 
