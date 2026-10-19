@@ -95,6 +95,8 @@ private struct FeaturePager: View {
         switch feature {
         case .music:
             MusicPage(music: music)
+        case .monitor:
+            MonitorPage()
         case .stopwatch:
             ClockPage(state: state, stopwatch: stopwatch, timer: timer, pomodoro: pomodoro)
         case .files:

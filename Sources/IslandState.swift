@@ -2,6 +2,7 @@ import SwiftUI
 
 enum IslandFeature: Int, CaseIterable, Identifiable, Hashable {
     case music
+    case monitor
     case stopwatch
     case prayer
     case files
@@ -11,6 +12,7 @@ enum IslandFeature: Int, CaseIterable, Identifiable, Hashable {
     var title: String {
         switch self {
         case .music: return "Now Playing"
+        case .monitor: return "Monitor"
         case .stopwatch: return "Stopwatch"
         case .prayer: return "Prayer Times"
         case .files: return "Drop Zone"
@@ -20,6 +22,7 @@ enum IslandFeature: Int, CaseIterable, Identifiable, Hashable {
     var icon: String {
         switch self {
         case .music: return "music.note"
+        case .monitor: return "chart.bar.xaxis"
         case .stopwatch: return "stopwatch"
         case .prayer: return "moon.stars.fill"
         case .files: return "tray.and.arrow.down"
