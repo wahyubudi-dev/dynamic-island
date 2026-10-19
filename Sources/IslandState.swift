@@ -4,6 +4,7 @@ enum IslandFeature: Int, CaseIterable, Identifiable, Hashable {
     case music
     case stopwatch
     case files
+    case prayer
 
     var id: Int { rawValue }
 
@@ -12,6 +13,7 @@ enum IslandFeature: Int, CaseIterable, Identifiable, Hashable {
         case .music: return "Now Playing"
         case .stopwatch: return "Stopwatch"
         case .files: return "Drop Zone"
+        case .prayer: return "Prayer Times"
         }
     }
 
@@ -20,6 +22,7 @@ enum IslandFeature: Int, CaseIterable, Identifiable, Hashable {
         case .music: return "music.note"
         case .stopwatch: return "stopwatch"
         case .files: return "tray.and.arrow.down"
+        case .prayer: return "moon.stars.fill"
         }
     }
 }

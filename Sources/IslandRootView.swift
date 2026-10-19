@@ -8,6 +8,7 @@ struct IslandRootView: View {
     @ObservedObject var timer: CountdownTimer
     @ObservedObject var pomodoro: Pomodoro
     @ObservedObject var store: DropStore
+    @ObservedObject var prayer: PrayerModel
     let actions: IslandActions
 
     var body: some View {
@@ -36,7 +37,8 @@ struct IslandRootView: View {
                     stopwatch: stopwatch,
                     timer: timer,
                     pomodoro: pomodoro,
-                    store: store
+                    store: store,
+                    prayer: prayer
                 )
                 .frame(width: expanded.width, height: expanded.height)
 

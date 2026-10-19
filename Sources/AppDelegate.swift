@@ -8,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let timer = CountdownTimer()
     private let pomodoro = Pomodoro()
     private let dropStore = DropStore()
+    private let prayer = PrayerModel()
 
     private var panel: IslandPanel?
     private var geometry = IslandGeometry(screen: IslandGeometry.preferredScreen())
@@ -64,6 +65,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             timer: timer,
             pomodoro: pomodoro,
             store: dropStore,
+            prayer: prayer,
             actions: IslandActions(quit: { NSApp.terminate(nil) })
         )
         let host = ClickHostingView(rootView: root)
